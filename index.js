@@ -231,10 +231,6 @@ RFDuino.prototype.writeData = function (data, callback) {
 	this.writeCharacteristic(TX_UUID, data, callback);
 };
 
-RFDuino.prototype.readData = function (callback) {
-	this.readDataCharacteristic(RX_UUID, callback);
-};
-
 RFDuino.prototype.notifyDataReceive = function (callback) {
 	this.notifyCharacteristic(RX_UUID, true, this._bindings.onDataReceived, callback);
 };

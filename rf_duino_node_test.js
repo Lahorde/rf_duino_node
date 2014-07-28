@@ -112,19 +112,6 @@ function (callback) {
 },
 
 function (callback) {
-	debug('reading data from rf_duino_node');
-
-	/** PREREQUISITIES : Some data must written on discovered RFDuino using serial interface */
-	rfDuino.readData(function (data) {
-		debug('data received : ');
-		for (var index = 0; index < data.length; index++) {
-			debug('0x' + data[index].toString(16) + ' ');
-		}
-		callback();
-	});
-},
-
-function (callback) {
 	debug('notify for new data');
 
 	/** PREREQUISITIES : Some data must written on discovered RFDuino using serial interface */
@@ -141,12 +128,21 @@ function (callback) {
 },
 
 function (callback) {
+	setTimeout(callback, 2000);
+},
+
+function (callback) {
 	debug('unnotity for new data');
 	rfDuino.unnotifyDataReceive(function () {
 		debug('you will not be notified on new data');
 		callback();
 	});
 },
+
+function (callback) {
+	setTimeout(callback, 2000);
+},
+
 
 function (callback) {
 	debug('re-notity for new data');
@@ -157,7 +153,7 @@ function (callback) {
 },
 
 function (callback) {
-	debug('test end');
+	debug('test on going...');
 	// Insert other things to do...
 }],
 
