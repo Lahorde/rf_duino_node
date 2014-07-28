@@ -1,0 +1,34 @@
+{
+  "name": "rf_duino_node",
+  "version": "0.0.1",
+  "description": "node.js lib for the rf duino",
+  "main": "index.js",
+  "scripts": {
+    "test": "jshint *.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lahorde/rf_duino_node.git"
+  },
+  "keywords": [
+    "redbear",
+    "blemini"
+  ],
+  "author": {
+    "name": "Lahorde"
+  },
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "todo",
+  "dependencies": {
+    "noble": "git://github.com/Lahorde/noble.git#dad6886016e5bff67f4ec388118ecf409dad35e6"
+  },
+  "devDependencies": {
+    "async": "~0.2.7",
+    "jshint": "~1.1.0"
+  },
+  "bugs": {
+    "url": "https://github.com/Lahorde/rf_duino_node/issues"
+  },
+  "homepage": "https://github.com/Lahorde/rf_duino_node"
+}
