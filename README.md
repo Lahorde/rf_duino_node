@@ -46,11 +46,11 @@ To run test :
 
 ### usage
 
-__Discover__
+__discover__
 
     RFDuino.Discover(callback, uuid);
 
-__Connect__
+__connect__
 
     rfDuino.connect(callback);
     
