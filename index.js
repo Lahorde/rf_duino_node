@@ -52,27 +52,46 @@ function RFDuino(peripheral) {
 
 util.inherits(RFDuino, events.EventEmitter);
 
-RFDuino.discover = function (callback, uuid) {
+RFDuino.discover = function (callback, uuids) {
+	 //RP - JS rules!!! 
+    // needs if : static variable. At next discover call, BLEMini.discover.onDiscover !== BLEMini.discover.onDiscover (registered as 'discover' listener)
+    if(!RFDuino.discover.onDiscover){
+        RFDuino.discover.onDiscover = function (peripheral) {
+            if (peripheral.advertisement.localName === 'RFduino' && (uuids === undefined || uuids.indexOf(peripheral.uuid) !== -1)) {
+                noble.removeListener('discover', RFDuino.discover.onDiscover);
+                noble.stopScanning();
+                var rfDuino = new RFDuino(peripheral);
+                callback(null, rfDuino);
+            }
+        };
+    }
+
 	var startScanningOnPowerOn = function () {
-		if (noble.state === 'poweredOn') {
-			var onDiscover = function (peripheral) {
-				if (peripheral.advertisement.localName === 'RFduino' && (uuid === undefined || uuid === peripheral.uuid)) {
-					noble.removeListener('discover', onDiscover);
-					noble.stopScanning();
-					var rfDuino = new RFDuino(peripheral);
-					callback(rfDuino);
-				}
-			};
-
-			noble.on('discover', onDiscover);
-
+        if (noble.state === 'poweredOn') {
+            if(noble.listeners('discover') 
+                && noble.listeners('discover').length > 0
+                && noble.listeners('discover').indexOf(RFDuino.discover.onDiscover) != -1)
+            {
+                //be sure to not register listener multiple times (in case of 'discover' listener not called)
+                // listener already registered - no need to reregister it
+            }
+            else{
+                noble.on('discover', RFDuino.discover.onDiscover);
+            }
 			noble.startScanning();
-		} else {
+		} else if (noble.state === 'unknown') {
+            //Wait for adapter to be ready
 			noble.once('stateChange', startScanningOnPowerOn);
-		}
-	};
-
+		} else {
+            callback(new Error('Please be sure Bluetooth 4.0 supported / enabled on your system before trying to connect to sensortag-node'), null);
+        }
+    }.bind(this);
 	startScanningOnPowerOn();
+};
+
+RFDuino.stopDiscover = function(callback){
+    debug('stop discover');
+	noble.stopScanning(callback);
 };
 
 RFDuino.prototype.onConnectionDrop = function () {
@@ -80,6 +99,10 @@ RFDuino.prototype.onConnectionDrop = function () {
 	debug('connection dropped - reconnect');
 	this._peripheral.reconnect();
 	this.emit('connectionDrop');
+};
+
+RFDuino.prototype.reconnect = function (callback) {
+	this._peripheral.reconnect(callback);
 };
 
 RFDuino.prototype.onReconnectAfterCharsDiscovery = function () {
