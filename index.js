@@ -54,7 +54,7 @@ util.inherits(RFDuino, events.EventEmitter);
 
 RFDuino.discover = function (callback, uuids) {
 	 //RP - JS rules!!! 
-    // needs if : static variable. At next discover call, BLEMini.discover.onDiscover !== BLEMini.discover.onDiscover (registered as 'discover' listener)
+    // needs if : static variable. At next discover call, RFDuino.discover.onDiscover !== RFDuino.discover.onDiscover (registered as 'discover' listener)
     if(!RFDuino.discover.onDiscover){
         RFDuino.discover.onDiscover = function (peripheral) {
             if (peripheral.advertisement.localName === 'RFduino' && (uuids === undefined || uuids.indexOf(peripheral.uuid) !== -1)) {
@@ -95,9 +95,6 @@ RFDuino.stopDiscover = function(callback){
 };
 
 RFDuino.prototype.onConnectionDrop = function () {
-	//Reconnect in all cases 
-	debug('connection dropped - reconnect');
-	this._peripheral.reconnect();
 	this.emit('connectionDrop');
 };
 
@@ -106,31 +103,45 @@ RFDuino.prototype.reconnect = function (callback) {
 };
 
 RFDuino.prototype.onReconnectAfterCharsDiscovery = function () {
-	this.restoreCharsAndNotifs(function () {});
-	this.emit('reconnect');
+	this.restoreCharsAndNotifs(function () {
+		this.emit('reconnect');
+	}.bind(this));
 };
 
 RFDuino.prototype.onReconnectDuringCharsDiscovery = function (callback) {
-	this.discoverServicesAndCharacteristics(callback);
-	this.emit('reconnect');
+	this.discoverServicesAndCharacteristics(function(){
+		this.emit('reconnect');
+	}.bind(this));
 };
 
-RFDuino.prototype.restoreCharsAndNotifs = function () {
-	debug('restore ble_mini written characteristics and notifications after connection drop');
-	var char_uuid, char_index;
+RFDuino.prototype.restoreCharsAndNotifs = function (callback) {
+	var char_index;
+	debug('restore written characteristics and notifications after connection drop');
 
-	//Try to restore written characteristics - listener have already been registered
-	for (char_uuid in this._writtenCharacteristics) {
-		if(this._characteristics.hasOwnProperty(char_uuid) && this._writtenCharacteristics.hasOwnProperty(char_uuid)){
-			this._characteristics[char_uuid].write(this._writtenCharacteristics[char_uuid], false, function () {});
+	var loopIndex = 0;
+	var iterateOverChars = function(){
+		if(loopIndex < Object.keys(this._writtenCharacteristics).length){
+			this._characteristics[Object.keys(this._writtenCharacteristics)[loopIndex]].write(this._writtenCharacteristics[Object.keys(this._writtenCharacteristics)[loopIndex]], false, iterateOverChars);
+			loopIndex++;
 		}
-	}
+		else{
+			// now restore enabled notifications
+			char_index = 0;
+			restoreEnabledNotif()
+		}
+	}.bind(this);
 
-	//Try to restore enabled notifications
-	for (char_index = 0; char_index < this._enabledNotifications.length; char_index++) {
-		this._enabledNotifications[char_index].notify(true, function (state) {});
-	}
-	this.emit('reconnect');
+	var restoreEnabledNotif = function(){
+		if(char_index < this._enabledNotifications.length){
+			this._enabledNotifications[char_index].notify(true, restoreEnabledNotif);
+			char_index++;
+		}
+		else{
+			callback();
+		}
+	}.bind(this);
+
+	iterateOverChars();
 };
 
 
