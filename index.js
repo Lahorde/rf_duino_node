@@ -200,7 +200,7 @@ RFDuino.prototype.notifyCharacteristic = function (uuid, notify, listener, callb
 	var characteristic = this._characteristics[uuid];
 	if (characteristic === undefined) {
 		//TODO throw error
-		debug('characteristic with uuid ' + uuid + ' not supported by sensortag');
+		debug('characteristic with uuid ' + uuid + ' not supported by rf_duino');
 		callback();
 	} else {
 		characteristic.notify(notify, function (state) {
@@ -223,7 +223,7 @@ RFDuino.prototype.notifyCharacteristic = function (uuid, notify, listener, callb
 
 RFDuino.prototype.readDataCharacteristic = function (uuid, callback) {
 	if (this._characteristics[uuid] === undefined) {
-		debug('characteristic with uuid ' + uuid + ' not supported by ble_mini_node');
+		debug('characteristic with uuid ' + uuid + ' not supported by rf_duino');
 	}
 	else{
 		this._characteristics[uuid].read(function (error, data) {
