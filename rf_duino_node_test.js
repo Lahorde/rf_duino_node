@@ -51,10 +51,14 @@ debug('starting rf_duino_node_test');
 
 async.series([
 function (callback) {
-	RFDuino.discover(function (discoveredRFDuino) {
-		debug('rf_duino_node with uuid ' + discoveredRFDuino._uuid + ' discovered');
-		rfDuino = discoveredRFDuino;
-		callback();
+	RFDuino.discover(function (err, discoveredRFDuino) {
+    if(err)
+      callback(err);
+    else{
+      debug('rf_duino_node with uuid ' + discoveredRFDuino._uuid + ' discovered');
+      rfDuino = discoveredRFDuino;
+      callback(); 
+    }
 	});
 },
 
